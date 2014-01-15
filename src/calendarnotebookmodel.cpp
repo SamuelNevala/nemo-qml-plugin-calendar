@@ -34,6 +34,7 @@
 
 #include "calendardb.h"
 #include "calendareventcache.h"
+#include <QtCore/QSettings>
 
 NemoCalendarNotebookModel::NemoCalendarNotebookModel()
 {
@@ -44,6 +45,7 @@ NemoCalendarNotebookModel::NemoCalendarNotebookModel()
     mRoleNames[DefaultRole] = "isDefault";
     mRoleNames[ReadOnlyRole] = "readOnly";
     mRoleNames[LocalCalendarRole] = "localCalendar";
+    mRoleNames[ExcludedOrReadOnlyRole] = "excludedOrReadOnly";
 }
 
 int NemoCalendarNotebookModel::rowCount(const QModelIndex &index) const
@@ -76,6 +78,10 @@ QVariant NemoCalendarNotebookModel::data(const QModelIndex &index, int role) con
         return notebook->isReadOnly();
     case LocalCalendarRole:
         return (notebook->isMaster() && !notebook->isShared() && notebook->pluginName().isEmpty());
+    case ExcludedOrReadOnlyRole: {
+        QSettings settings("nemo", "nemo-qml-plugin-calendar");
+        return notebook->isReadOnly() || settings.value("exclude/" + notebook->uid()).toBool();
+    }
     default:
         return QVariant();
     }
