@@ -60,6 +60,10 @@ public:
 signals:
     void excludedNotebooksChanged();
 
+private:
+
+    void clearPrimedAlarms(const QStringList &calendarUids);
+    void primeAlarms(const QStringList &calendarUids);
 };
 
 #endif // CALENDARAPI_H

@@ -21,7 +21,6 @@ equals(QT_MAJOR_VERSION, 5) {
         calendarnotebookmodel.cpp \
 
     HEADERS += \
-        calendarapi.cpp \
         calendarapi.h \
         calendareventquery.h \
         calendarnotebookmodel.h \
@@ -44,13 +43,13 @@ SOURCES += \
     calendarevent.cpp \
     calendaragendamodel.cpp \
     calendardb.cpp \
-    calendareventcache.cpp \
+    calendareventcache.cpp
 
 HEADERS += \
     calendarevent.h \
     calendaragendamodel.h \
     calendardb.h \
-    calendareventcache.h \
+    calendareventcache.h
 
 MOC_DIR = $$PWD/.moc
 OBJECTS_DIR = $$PWD/.obj

@@ -95,23 +95,66 @@ void NemoCalendarApi::setExcludedNotebooks(const QStringList &list)
 
     QSettings settings("nemo", "nemo-qml-plugin-calendar");
 
+    QStringList newIncluded;
     for (int ii = 0; ii < current.count(); ++ii) {
         QString uid = current.at(ii);
-        if (!list.contains(uid))
+        if (!list.contains(uid)) {
             settings.remove("exclude/" + uid);
+            newIncluded.append(uid);
+        }
     }
 
+    QStringList newExcluded;
     for (int ii = 0; ii < list.count(); ++ii) {
         QString uid = list.at(ii);
-        if (!current.contains(uid))
+        if (!current.contains(uid)) {
             settings.setValue("exclude/" + uid, true);
+            newExcluded.append(uid);
+        }
     }
+
+    QStringList excludedUids;
+    foreach (QString key, settings.allKeys()) {
+        if (key.contains("exclude/")) {
+            excludedUids.append(key.remove("exclude/"));
+        }
+    }
+    NemoCalendarDb::storage()->blockAlarms(excludedUids);
+    clearPrimedAlarms(newExcluded);
 
     emit excludedNotebooksChanged();
     NemoCalendarEventCache::instance()->load();
+
+    // Alarms needs to be primed after load, otherwise storage
+    // has not loaded new incidences to prime and will crash.
+    primeAlarms(newIncluded);
 }
 
 QObject *NemoCalendarApi::New(QQmlEngine *e, QJSEngine *)
 {
     return new NemoCalendarApi(e);
+}
+
+void NemoCalendarApi::clearPrimedAlarms(const QStringList &calendarUids)
+{
+    if (calendarUids.isEmpty()) {
+        return;
+    }
+
+    foreach (QString uid, calendarUids) {
+        NemoCalendarDb::storage()->clearAlarms(uid);
+    }
+}
+
+void NemoCalendarApi::primeAlarms(const QStringList &calendarUids)
+{
+    if (calendarUids.isEmpty()) {
+        return;
+    }
+
+    KCalCore::Incidence::List incidenceList;
+    foreach (QString uid, calendarUids) {
+        NemoCalendarDb::storage()->allIncidences(&incidenceList, uid);
+    }
+    NemoCalendarDb::storage()->resetAlarms(incidenceList);
 }
